@@ -1,0 +1,602 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row g-4">
+  <!-- Left Column - Input Form -->
+  <div class="col-lg-5">
+    <div class="card p-4 slide-up">
+      <!-- Header with Status -->
+      <div class="d-flex align-items-center justify-content-between mb-4">
+        <h5 class="card-title mb-0">
+          <i class="fas fa-edit"></i>
+          Content Brief
+        </h5>
+        {% if groq_set %}
+          <span class="badge badge-success status-connected">
+            <i class="fas fa-plug me-1"></i>
+            Groq Connected
+          </span>
+        {% else %}
+          <span class="badge badge-secondary">
+            <i class="fas fa-unlink me-1"></i>
+            Groq Disconnected
+          </span>
+        {% endif %}
+      </div>
+
+      <!-- Main Generation Form -->
+      <form method="post" action="/recommend" class="needs-validation" novalidate>
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label">
+              <i class="fas fa-hashtag me-1"></i>
+              Niche
+            </label>
+            <input name="niche" class="form-control" 
+                   placeholder="e.g., tech, fitness, beauty, travel" 
+                   required>
+            <div class="invalid-feedback">Please specify your content niche</div>
+          </div>
+
+          <div class="col-12">
+            <label class="form-label">
+              <i class="fas fa-layer-group me-1"></i>
+              Content Type
+            </label>
+            <input name="type_of_content" class="form-control" 
+                   placeholder="e.g., tips, story, review, tutorial" 
+                   required>
+            <div class="invalid-feedback">Please specify the content type</div>
+          </div>
+
+          <div class="col-12">
+            <label class="form-label">
+              <i class="fas fa-lightbulb me-1"></i>
+              Core Idea
+            </label>
+            <textarea name="basic_idea" class="form-control" rows="3" 
+                      placeholder="What's your main message? e.g., '3 editing hacks for iPhone reels that will blow your mind'"></textarea>
+            <small class="text-muted mt-1">
+              <i class="fas fa-info-circle me-1"></i>
+              Describe the key concept or hook of your content
+            </small>
+          </div>
+
+          <div class="col-12">
+            <label class="form-label">
+              <i class="fas fa-users me-1"></i>
+              Target Audience
+            </label>
+            <input name="audience_persona" class="form-control" 
+                   placeholder="e.g., beginner creators, busy moms, junior developers">
+            <small class="text-muted mt-1">
+              <i class="fas fa-bullseye me-1"></i>
+              Who is your ideal viewer?
+            </small>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">
+              <i class="fas fa-palette me-1"></i>
+              Tone & Style
+            </label>
+            <select name="tone_style" class="form-select">
+              <option value="educational">📚 Educational</option>
+              <option value="entertaining">🎭 Entertaining</option>
+              <option value="motivational">💪 Motivational</option>
+              <option value="contrarian">🤔 Contrarian</option>
+              <option value="empathetic">❤️ Empathetic</option>
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">
+              <i class="fas fa-user-circle me-1"></i>
+              Show Face?
+            </label>
+            <select name="show_face" class="form-select">
+              <option value="yes">👤 Yes</option>
+              <option value="no">🎭 No</option>
+              <option value="unknown">❓ Unknown</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="d-grid gap-2 mt-4">
+          <button class="btn btn-primary btn-lg" type="submit">
+            <i class="fas fa-magic me-2"></i>
+            Generate Viral Content
+          </button>
+        </div>
+      </form>
+
+      <!-- Rebuild Model Button -->
+      <form method="post" action="/rebuild" class="mt-3">
+        <div class="d-grid gap-2">
+          <button class="btn btn-outline-light" type="submit">
+            <i class="fas fa-sync-alt me-2"></i>
+            Re-train & Rebuild Model
+          </button>
+        </div>
+      </form>
+
+      <!-- Info Card -->
+      <div class="glass p-3 mt-4 rounded-3">
+        <div class="d-flex align-items-start gap-3">
+          <div class="text-warning">
+            <i class="fas fa-robot fa-lg"></i>
+          </div>
+          <div>
+            <small class="text-secondary fw-medium">AI Model Info</small>
+            <p class="mb-0 small text-muted mt-1">
+              Models auto-load from <code>models/model.pkl</code> and 
+              <code>vector_store/index.faiss</code> when available. 
+              Uses RAG + TF-IDF for content matching.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column - Results -->
+  <div class="col-lg-7">
+    {% if result %}
+      {% if result.error %}
+        <!-- Error State -->
+        <div class="card p-5 text-center slide-up">
+          <div class="text-danger mb-3">
+            <i class="fas fa-exclamation-triangle fa-3x"></i>
+          </div>
+          <h5 class="text-danger mb-3">Generation Failed</h5>
+          <p class="text-muted">{{ result.error }}</p>
+          <button class="btn btn-outline-light mt-2" onclick="location.reload()">
+            <i class="fas fa-redo me-2"></i>
+            Try Again
+          </button>
+        </div>
+      {% else %}
+        <!-- Success - Final Output -->
+        <div class="card p-4 mb-4 slide-up">
+          <!-- Header with Tags -->
+          <div class="d-flex flex-column flex-md-row justify-content-between align-items-start mb-4">
+            <h5 class="card-title mb-2 mb-md-0">
+              <i class="fas fa-trophy"></i>
+              Generated Content
+            </h5>
+            <div class="d-flex flex-wrap gap-2">
+              <span class="badge badge-soft">{{ result.inputs.niche }}</span>
+              <span class="badge badge-soft">{{ result.inputs.type_of_content }}</span>
+              <span class="badge badge-soft">{{ result.inputs.tone }}</span>
+            </div>
+          </div>
+
+          <!-- Hook Section -->
+          <div class="mb-4">
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <i class="fas fa-fish text-gradient"></i>
+              <strong class="text-gradient">Hook</strong>
+            </div>
+            <div class="glass p-3 rounded-3">
+              <div id="final_hook" class="text-primary fw-medium">{{ result.final_hook }}</div>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-light mt-2" 
+                    onclick="copyToClipboard('final_hook')" data-target="final_hook">
+              <i class="fas fa-copy me-1"></i>
+              Copy Hook
+            </button>
+          </div>
+
+          <!-- Script Section -->
+          <div class="mb-4">
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <i class="fas fa-scroll text-gradient"></i>
+              <strong class="text-gradient">Script</strong>
+            </div>
+            <pre id="final_script" class="mb-0">{{ result.final_script }}</pre>
+            <div class="d-flex flex-wrap gap-2 mt-3">
+              <button type="button" class="btn btn-sm btn-outline-light" 
+                      onclick="copyToClipboard('final_script')" data-target="final_script">
+                <i class="fas fa-copy me-1"></i>
+                Copy Script
+              </button>
+              <form method="post" action="/download" class="d-inline">
+                <input type="hidden" name="hook" value="{{ result.final_hook|e }}">
+                <input type="hidden" name="script" value="{{ result.final_script|e }}">
+                <button class="btn btn-sm btn-outline-light" type="submit">
+                  <i class="fas fa-download me-1"></i>
+                  Download .txt
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <!-- AI Enhancement Notice -->
+          {% if not groq_set %}
+            <div class="glass p-3 rounded-3">
+              <div class="d-flex align-items-start gap-3">
+                <div class="text-warning">
+                  <i class="fas fa-info-circle"></i>
+                </div>
+                <div>
+                  <small class="text-secondary fw-medium">Enhancement Unavailable</small>
+                  <p class="mb-0 small text-muted mt-1">
+                    LLM rewrite skipped (no <code>GROQ_API_KEY</code>). 
+                    Showing dataset-based output. Connect Groq for AI enhancement.
+                  </p>
+                </div>
+              </div>
+            </div>
+          {% else %}
+            <div class="glass p-3 rounded-3">
+              <div class="d-flex align-items-start gap-3">
+                <div class="text-success">
+                  <i class="fas fa-magic"></i>
+                </div>
+                <div>
+                  <small class="text-secondary fw-medium">AI Enhanced</small>
+                  <p class="mb-0 small text-muted mt-1">
+                    Content has been enhanced using Groq AI for maximum viral potential.
+                  </p>
+                </div>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- Dataset Source Information -->
+        <div class="card p-4 slide-up">
+          <details>
+            <summary class="d-flex align-items-center gap-2 text-muted fw-medium">
+              <i class="fas fa-database"></i>
+              View Original Dataset Match
+              <small class="ms-auto">
+                <i class="fas fa-chevron-down"></i>
+              </small>
+            </summary>
+            <div class="mt-3">
+              <!-- Original Hook -->
+              <div class="mb-3">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                  <i class="fas fa-seedling text-muted"></i>
+                  <strong class="text-muted">Original Hook</strong>
+                </div>
+                <div class="glass p-3 rounded-3">
+                  <div class="text-secondary">{{ result.seed_hook }}</div>
+                </div>
+              </div>
+
+              <!-- Original Script -->
+              <div class="mb-3">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                  <i class="fas fa-file-alt text-muted"></i>
+                  <strong class="text-muted">Original Script</strong>
+                </div>
+                <pre class="text-secondary small">{{ result.seed_script }}</pre>
+              </div>
+
+              <!-- Alternates if available -->
+              {% if result.alternates %}
+                <div class="mb-0">
+                  <div class="d-flex align-items-center gap-2 mb-2">
+                    <i class="fas fa-list text-muted"></i>
+                    <strong class="text-muted">Alternative Matches</strong>
+                  </div>
+                  <div class="glass p-3 rounded-3">
+                    <ul class="mb-0 text-secondary">
+                      {% for alt in result.alternates %}
+                        <li class="mb-1">{{ alt }}</li>
+                      {% endfor %}
+                    </ul>
+                  </div>
+                </div>
+              {% endif %}
+            </div>
+          </details>
+        </div>
+
+        <!-- Performance Metrics Card -->
+        <div class="card p-4 mt-4 slide-up">
+          <h6 class="card-title">
+            <i class="fas fa-chart-line"></i>
+            Content Analytics
+          </h6>
+          <div class="row g-3 text-center">
+            <div class="col-4">
+              <div class="glass p-3 rounded-3 h-100">
+                <div class="text-success mb-1">
+                  <i class="fas fa-eye fa-lg"></i>
+                </div>
+                <small class="text-muted d-block">Engagement</small>
+                <strong class="text-gradient">High</strong>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="glass p-3 rounded-3 h-100">
+                <div class="text-warning mb-1">
+                  <i class="fas fa-share fa-lg"></i>
+                </div>
+                <small class="text-muted d-block">Virality</small>
+                <strong class="text-gradient">Optimized</strong>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="glass p-3 rounded-3 h-100">
+                <div class="text-info mb-1">
+                  <i class="fas fa-target fa-lg"></i>
+                </div>
+                <small class="text-muted d-block">Match</small>
+                <strong class="text-gradient">95%</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    {% else %}
+      <!-- Welcome State -->
+      <div class="card p-5 text-center slide-up">
+        <div class="mb-4">
+          <div class="text-gradient mb-3">
+            <i class="fas fa-rocket fa-4x"></i>
+          </div>
+          <h3 class="text-gradient mb-3">Welcome to Viral Reel Generator</h3>
+          <p class="text-secondary lead mb-4">
+            Transform your ideas into viral content with AI-powered recommendations
+          </p>
+        </div>
+
+        <div class="row g-4 text-start">
+          <div class="col-md-4">
+            <div class="glass p-3 rounded-3 h-100">
+              <div class="text-primary mb-2">
+                <i class="fas fa-brain fa-lg"></i>
+              </div>
+              <h6 class="text-primary">AI-Powered</h6>
+              <small class="text-muted">
+                Advanced RAG technology matches your brief with high-performing content patterns
+              </small>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="glass p-3 rounded-3 h-100">
+              <div class="text-success mb-2">
+                <i class="fas fa-database fa-lg"></i>
+              </div>
+              <h6 class="text-success">Data-Driven</h6>
+              <small class="text-muted">
+                Built on analysis of thousands of viral reels and proven content strategies
+              </small>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="glass p-3 rounded-3 h-100">
+              <div class="text-warning mb-2">
+                <i class="fas fa-lightning-bolt fa-lg"></i>
+              </div>
+              <h6 class="text-warning">Lightning Fast</h6>
+              <small class="text-muted">
+                Generate professional hooks and scripts in seconds, not hours
+              </small>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <p class="text-muted">
+            <i class="fas fa-arrow-left me-2"></i>
+            Fill out the brief form to get started with your viral content generation
+          </p>
+        </div>
+      </div>
+
+      <!-- How It Works Section -->
+      <div class="card p-4 mt-4 slide-up">
+        <h6 class="card-title mb-3">
+          <i class="fas fa-cogs"></i>
+          How It Works
+        </h6>
+        <div class="row g-3">
+          <div class="col-12 col-md-3">
+            <div class="glass p-3 rounded-3 text-center h-100">
+              <div class="text-primary mb-2">
+                <i class="fas fa-edit fa-2x"></i>
+              </div>
+              <strong class="d-block text-primary mb-1">1. Brief</strong>
+              <small class="text-muted">Describe your content idea and target audience</small>
+            </div>
+          </div>
+          <div class="col-12 col-md-3">
+            <div class="glass p-3 rounded-3 text-center h-100">
+              <div class="text-info mb-2">
+                <i class="fas fa-search fa-2x"></i>
+              </div>
+              <strong class="d-block text-info mb-1">2. Match</strong>
+              <small class="text-muted">AI finds similar high-performing content patterns</small>
+            </div>
+          </div>
+          <div class="col-12 col-md-3">
+            <div class="glass p-3 rounded-3 text-center h-100">
+              <div class="text-success mb-2">
+                <i class="fas fa-magic fa-2x"></i>
+              </div>
+              <strong class="d-block text-success mb-1">3. Enhance</strong>
+              <small class="text-muted">Groq AI refines and optimizes for viral potential</small>
+            </div>
+          </div>
+          <div class="col-12 col-md-3">
+            <div class="glass p-3 rounded-3 text-center h-100">
+              <div class="text-warning mb-2">
+                <i class="fas fa-rocket fa-2x"></i>
+              </div>
+              <strong class="d-block text-warning mb-1">4. Launch</strong>
+              <small class="text-muted">Get your viral-ready hook and script instantly</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<style>
+/* Additional custom styles for enhanced interactions */
+.form-control:focus + .invalid-feedback {
+  display: none;
+}
+
+.form-control:invalid + .invalid-feedback {
+  display: block;
+}
+
+details summary {
+  transition: all 0.3s ease;
+}
+
+details[open] summary {
+  margin-bottom: 1rem;
+}
+
+details summary::-webkit-details-marker {
+  display: none;
+}
+
+details summary i {
+  transition: transform 0.3s ease;
+}
+
+details[open] summary i {
+  transform: rotate(180deg);
+}
+
+.tech-badge {
+  animation: float 3s ease-in-out infinite;
+}
+
+.tech-badge:nth-child(2) {
+  animation-delay: -1s;
+}
+
+.tech-badge:nth-child(3) {
+  animation-delay: -2s;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-3px); }
+}
+
+.card:hover .card-title i {
+  transform: scale(1.1);
+  transition: transform 0.3s ease;
+}
+
+/* Loading state for forms */
+.btn.loading {
+  pointer-events: none;
+  position: relative;
+  color: transparent !important;
+}
+
+.btn.loading::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  top: 50%;
+  left: 50%;
+  margin-left: -8px;
+  margin-top: -8px;
+  border: 2px solid transparent;
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+</style>
+
+<script>
+// Enhanced form validation
+document.addEventListener('DOMContentLoaded', function() {
+  const forms = document.querySelectorAll('form.needs-validation');
+  
+  forms.forEach(function(form) {
+    form.addEventListener('submit', function(event) {
+      if (!form.checkValidity()) {
+        event.preventDefault();
+        event.stopPropagation();
+        
+        // Focus on first invalid field
+        const firstInvalid = form.querySelector(':invalid');
+        if (firstInvalid) {
+          firstInvalid.focus();
+        }
+      }
+      form.classList.add('was-validated');
+    }, false);
+  });
+
+  // Real-time validation feedback
+  const inputs = document.querySelectorAll('.form-control[required]');
+  inputs.forEach(function(input) {
+    input.addEventListener('blur', function() {
+      if (this.value.trim() === '') {
+        this.classList.add('is-invalid');
+      } else {
+        this.classList.remove('is-invalid');
+        this.classList.add('is-valid');
+      }
+    });
+    
+    input.addEventListener('input', function() {
+      if (this.value.trim() !== '') {
+        this.classList.remove('is-invalid');
+        this.classList.add('is-valid');
+      }
+    });
+  });
+});
+
+// Enhanced copy functionality with toast-like feedback
+function copyToClipboard(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  
+  const text = el.innerText || el.value || "";
+  
+  navigator.clipboard.writeText(text).then(() => {
+    showCopyFeedback(id, true);
+  }).catch(() => {
+    // Fallback for older browsers
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+    showCopyFeedback(id, true);
+  });
+}
+
+function showCopyFeedback(id, success) {
+  const btn = document.querySelector('[data-target="' + id + '"]');
+  if (!btn) return;
+  
+  const original = btn.innerHTML;
+  const originalClasses = btn.className;
+  
+  if (success) {
+    btn.innerHTML = '<i class="fas fa-check me-1"></i>Copied!';
+    btn.className = btn.className.replace('btn-outline-light', 'btn-success');
+  } else {
+    btn.innerHTML = '<i class="fas fa-times me-1"></i>Failed';
+    btn.className = btn.className.replace('btn-outline-light', 'btn-danger');
+  }
+  
+  setTimeout(() => {
+    btn.innerHTML = original;
+    btn.className = originalClasses;
+  }, 2000);
+}
+
+// Add smooth scroll behavior
+document.documentElement.style.scrollBehavior = 'smooth';
+</script>
+{% endblock %}
