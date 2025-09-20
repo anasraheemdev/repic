@@ -1,12 +1,13 @@
 # 🚀 Repic - AI-Powered Instagram Content Generator
 
-A sophisticated RAG (Retrieval-Augmented Generation) + NLP application that creates viral Instagram captions, engaging content scripts, and strategic hook placements to maximize social media engagement and reach.
+A sophisticated RAG (Retrieval-Augmented Generation) + NLP application built with **LangChain** that creates viral Instagram captions, engaging content scripts, and strategic hook placements to maximize social media engagement and reach.
 
 ## ✨ Features
 
 - **🎯 Viral Caption Generation**: AI-powered captions optimized for Instagram engagement
 - **📝 Content Script Creation**: Complete scripts for Instagram posts, reels, and stories
 - **🎣 Strategic Hook Analysis**: Identifies optimal hooks and suggests placement strategies
+- **🔗 LangChain Integration**: Built on LangChain framework for robust LLM orchestration
 - **🔍 RAG-Enhanced Content**: Leverages retrieval-augmented generation for contextually relevant content
 - **🧠 NLP Processing**: Advanced natural language processing for content optimization
 - **📊 Engagement Optimization**: Content tailored for maximum viral potential
@@ -14,6 +15,8 @@ A sophisticated RAG (Retrieval-Augmented Generation) + NLP application that crea
 ## 🛠️ Tech Stack
 
 - **Backend**: Python
+- **LLM Framework**: LangChain for seamless LLM integration and orchestration
+- **RAG Implementation**: LangChain's retrieval and vector store components
 - **NLP Framework**: Advanced natural language processing models
 - **Vector Storage**: Efficient vector database for RAG implementation
 - **Models**: Custom-trained models for Instagram content generation
@@ -61,10 +64,15 @@ A sophisticated RAG (Retrieval-Augmented Generation) + NLP application that crea
    pip install -r requirements.txt
    ```
 
-4. **Set up environment variables**
+4. **Install LangChain dependencies**
+   ```bash
+   pip install langchain langchain-openai langchain-community
+   ```
+
+5. **Set up environment variables**
    ```bash
    cp .env.example .env
-   # Edit .env with your configuration
+   # Edit .env with your configuration including OpenAI API keys
    ```
 
 5. **Initialize the vector store**
@@ -83,14 +91,16 @@ A sophisticated RAG (Retrieval-Augmented Generation) + NLP application that crea
 
 ```python
 from app import RepicGenerator
+from langchain.llms import OpenAI
 
 generator = RepicGenerator()
 
-# Generate caption for a specific niche
+# Generate caption using LangChain pipeline
 caption = generator.generate_caption(
     topic="fitness motivation",
     style="inspirational", 
-    target_audience="young adults"
+    target_audience="young adults",
+    use_rag=True  # Enables RAG for contextual content
 )
 
 print(caption)
@@ -99,12 +109,15 @@ print(caption)
 ### Create Content Scripts
 
 ```python
-# Generate complete content script
+from langchain.chains import LLMChain
+
+# Generate complete content script using LangChain
 script = generator.create_script(
     content_type="reel",
     duration=30,
     topic="productivity tips",
-    hook_style="question"
+    hook_style="question",
+    chain_type="sequential"  # Uses LangChain's sequential chains
 )
 
 print(script)
@@ -113,10 +126,13 @@ print(script)
 ### Hook Analysis and Placement
 
 ```python
-# Analyze and suggest hook placements
+from langchain.agents import AgentExecutor
+
+# Analyze and suggest hook placements using LangChain agents
 hook_analysis = generator.analyze_hooks(
     content="Your existing content here...",
-    target_engagement="viral"
+    target_engagement="viral",
+    use_agent=True  # Enables LangChain agent for intelligent analysis
 )
 
 print(f"Suggested hooks: {hook_analysis['hooks']}")
@@ -159,22 +175,35 @@ Edit `models/config.json` to customize:
 
 ### RAG Settings
 
-Configure retrieval settings in `rag_utils.py`:
+Configure retrieval settings using LangChain components in `rag_utils.py`:
 
 ```python
+from langchain.vectorstores import FAISS
+from langchain.embeddings import OpenAIEmbeddings
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+
 RAG_CONFIG = {
     "chunk_size": 512,
     "chunk_overlap": 50,
     "similarity_threshold": 0.7,
-    "max_retrieved_docs": 5
+    "max_retrieved_docs": 5,
+    "embedding_model": "text-embedding-ada-002",
+    "vector_store": "FAISS"
 }
+
+# LangChain RAG Pipeline Setup
+text_splitter = RecursiveCharacterTextSplitter(
+    chunk_size=RAG_CONFIG["chunk_size"],
+    chunk_overlap=RAG_CONFIG["chunk_overlap"]
+)
 ```
 
 ## 📈 Performance Optimization
 
+- **LangChain Caching**: Built-in caching for LLM responses and embeddings
 - **Vector Caching**: Pre-computed embeddings for faster retrieval
-- **Model Optimization**: Quantized models for reduced memory usage
-- **Batch Processing**: Efficient handling of multiple requests
+- **Model Optimization**: Optimized LangChain chains for reduced latency
+- **Batch Processing**: Efficient handling of multiple requests using LangChain's batch capabilities
 - **Smart Caching**: Context-aware caching of generated content
 
 ## 🧪 Testing
@@ -244,11 +273,11 @@ The application supports deployment on:
 ## 💡 Key Features Deep Dive
 
 ### 🎯 Viral Caption Generation
-Repic analyzes thousands of high-performing Instagram posts to understand what makes content go viral. The AI considers:
-- Trending topics and hashtags
-- Audience engagement patterns
-- Optimal caption length and structure
-- Emotional triggers and psychological hooks
+Repic leverages LangChain's powerful orchestration capabilities to analyze thousands of high-performing Instagram posts. The AI considers:
+- Trending topics and hashtags through RAG retrieval
+- Audience engagement patterns using LangChain agents
+- Optimal caption length and structure via prompt engineering
+- Emotional triggers and psychological hooks with multi-step chains
 
 ### 🎣 Hook Strategy Intelligence
 The application identifies the perfect hooks for your content:
@@ -271,14 +300,16 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🙋‍♂️ Support
 
 - 📧 Email: contact@anasraheemdev.com
-- 💼 LinkedIn: [Anas Raheem](https://linkedin.com/in/anasraheem)
+- 💼 LinkedIn: [Anas Raheem](https://linkedin.com/in/anasraheemdev)
 - 🐛 Issues: [GitHub Issues](https://github.com/anasraheemdev/repic/issues)
 - ⭐ Repository: [Repic on GitHub](https://github.com/anasraheemdev/repic)
+- 🔗 LangChain Docs: [LangChain Documentation](https://docs.langchain.com/)
 
 ## 🎉 Acknowledgments
 
-- OpenAI for GPT models
-- Hugging Face for NLP tools
+- **LangChain** for providing the robust LLM orchestration framework
+- OpenAI for GPT models integration through LangChain
+- Hugging Face for NLP tools and model integration
 - The open-source community for various libraries
 - Instagram creators who inspired the hook strategies
 
